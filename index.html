@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KOPA | Squad Hub</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         :root { 
             --primary: #00d2ff; 
@@ -43,7 +39,7 @@
             font-size: 0.9rem; 
         }
         .hero { 
-            height: 80vh; 
+            height: 70vh; 
             display: flex; 
             flex-direction: column; 
             justify-content: center; 
@@ -55,6 +51,7 @@
             background: linear-gradient(to right, var(--primary), var(--secondary)); 
             -webkit-background-clip: text; 
             -webkit-text-fill-color: transparent; 
+            margin-bottom: 10px;
         }
         section { 
             padding: 80px 20px; 
@@ -83,35 +80,9 @@
             cursor: pointer; 
             border: none; 
         }
-        #messages { 
-            height: 300px; 
-            overflow-y: auto; 
-            background: #0f172a; 
-            padding: 10px; 
-            border-radius: 10px; 
-            margin-top: 15px; 
-        }
-        .msg { 
-            background: #1e293b; 
-            padding: 10px; 
-            border-radius: 8px; 
-            margin-bottom: 10px; 
-            border-left: 4px solid var(--primary); 
-        }
-        .msg small { 
-            color: var(--primary); 
-            display: block; 
-            margin-bottom: 5px; 
-        }
-        textarea { 
-            width: 100%; 
-            background: #0f172a; 
-            color: white; 
-            border: 1px solid #334155; 
-            border-radius: 8px; 
-            padding: 10px; 
-            margin-bottom: 10px; 
-            font-family: inherit; 
+        iframe {
+            border: none;
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -119,7 +90,7 @@
 
     <nav>
         <a href="#home">Home</a>
-        <a href="#feed">Squad Feed</a>
+        <a href="#chat">Squad Chat</a>
         <a href="#football">Football</a>
         <a href="#media">Media</a>
     </nav>
@@ -129,18 +100,14 @@
         <p>2026 Edition • Khristian • Oliver • Panav • Ayaan</p>
     </section>
 
-    <section id="feed">
-        <h2>SQUAD FEED</h2>
-        <div class="card">
-            <div id="auth-ui">
-                <button onclick="login()" class="btn">Login with Google to Post</button>
-            </div>
-            <div id="post-ui" style="display:none;">
-                <textarea id="postInput" placeholder="Share a goal link or update..."></textarea>
-                <button onclick="sendPost()" class="btn">Post to Feed</button>
-                <button onclick="logout()" style="background:transparent; color: #64748b; border:none; cursor:pointer; margin-left: 10px;">Logout</button>
-            </div>
-            <div id="messages"></div>
+    <section id="chat">
+        <h2>SQUAD CHAT</h2>
+        <div class="card" style="padding: 10px; height: 500px;">
+            <iframe src="https://www3.cbox.ws/box/?boxid=954203&boxtag=kopa" 
+                    width="100%" 
+                    height="100%" 
+                    scrolling="auto">
+            </iframe>
         </div>
     </section>
 
@@ -149,12 +116,10 @@
         <div class="grid">
             <div class="card">
                 <h3>FotMob</h3>
-                <p>The fastest live scores and stats.</p>
                 <a href="https://www.fotmob.com" target="_blank" class="btn">Live Scores</a>
             </div>
             <div class="card">
                 <h3>ESPN NBA</h3>
-                <p>In-depth analysis of the NBA.</p>
                 <a href="https://www.espn.com/nba/" target="_blank" class="btn">NBA Stats</a>
             </div>
         </div>
@@ -165,12 +130,10 @@
         <div class="grid">
             <div class="card">
                 <h3>VidBox</h3>
-                <p>Movies and TV shows.</p>
                 <a href="https://vidbox.cc" target="_blank" class="btn">Movies</a>
             </div>
             <div class="card">
                 <h3>StreamEx</h3>
-                <p>The ultimate streaming platform.</p>
                 <a href="https://streamex.sh" target="_blank" class="btn">Streams</a>
             </div>
         </div>
@@ -180,63 +143,7 @@
         <p>&copy; 2026 KOPA Crew.</p>
     </footer>
 
-    <!-- Firebase Code -->
-    <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyDg6oXU1yBhAM_EPSdCks4VUWSHebOXUk8",
-          authDomain: "kopa-23529.firebaseapp.com",
-          projectId: "kopa-23529",
-          storageBucket: "kopa-23529.firebasestorage.app",
-          messagingSenderId: "265317672840",
-          appId: "1:265317672840:web:c9410184536f42dd85fc3d",
-          measurementId: "G-TG5BY4FPX2"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-
-        function login() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider);
-        }
-        function logout() { auth.signOut(); }
-
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                document.getElementById('auth-ui').style.display = 'none';
-                document.getElementById('post-ui').style.display = 'block';
-            } else {
-                document.getElementById('auth-ui').style.display = 'block';
-                document.getElementById('post-ui').style.display = 'none';
-            }
-        });
-
-        function sendPost() {
-            const text = document.getElementById('postInput').value;
-            if(!text) return;
-            db.collection('posts').add({
-                name: auth.currentUser.displayName,
-                text: text,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            document.getElementById('postInput').value = '';
-        }
-
-        db.collection('posts').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
-            const msgDiv = document.getElementById('messages');
-            msgDiv.innerHTML = '';
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                msgDiv.innerHTML += `<div class="msg">
-                    <small>${data.name || 'Anonymous'}</small>
-                    ${data.text}
-                </div>`;
-            });
-        });
-    </script>
-
-    <!--Start of Tawk.to Script-->
+    <!-- Tawk.to Script -->
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
     (function(){
@@ -248,7 +155,6 @@
     s0.parentNode.insertBefore(s1,s0);
     })();
     </script>
-    <!--End of Tawk.to Script-->
 
 </body>
 </html>
